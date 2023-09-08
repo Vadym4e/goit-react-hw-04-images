@@ -2,6 +2,7 @@ import Notiflix from 'notiflix';
 import SearchBar from './SearchBar/SearchBar';
 import Gallery from './Gallery/Gallery';
 import LoadMore from './LoadMore/LoadMore';
+import { fetchStartImages, fetchRequestImages } from 'api';
 const { Component } = require('react');
 
 export class App extends Component {
@@ -15,16 +16,33 @@ export class App extends Component {
     if (newQuery === '') {
       Notiflix.Notify.failure('Please specify your search query.');
     }
+
     this.setState({ query: `${Date.now()}/${newQuery}`, images: [], page: 1 });
   };
 
-  componentDidUpdate(prevProps, prevState) {
+  async componentDidMount() {
+    const imagesList = await fetchStartImages();
+
+    this.setState(({ images }) => ({
+      images: [...imagesList.hits],
+    }));
+    // console.log(imagesList);
+  }
+
+  async componentDidUpdate(prevProps, prevState) {
     if (
       prevState.query !== this.state.query ||
       prevState.page !== this.state.page
     ) {
-      //const imagesList = http zapros
-      // this.setState({images: imagesList})
+      const normalQuery = this.state.query.slice(14, this.state.query.length);
+
+      const imagesList = await fetchRequestImages(normalQuery, this.state.page);
+
+      this.setState(({ images }) => ({
+        images: [...images, ...imagesList.hits],
+      }));
+      console.log(normalQuery);
+      console.log(imagesList);
     }
   }
 
@@ -36,7 +54,7 @@ export class App extends Component {
     return (
       <div>
         <SearchBar search={this.changeQuery} />
-        <Gallery />
+        <Gallery images={this.state.images} />
         <LoadMore moreImages={this.loadMoreImages} />
       </div>
     );
