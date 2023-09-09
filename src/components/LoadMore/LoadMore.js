@@ -1,12 +1,11 @@
 import React from 'react';
+import { ButtonMore } from './LoadMore.styled';
 
 const LoadMore = ({ moreImages }) => {
   return (
-    <div>
-      <button type="button" onClick={moreImages}>
-        Load more
-      </button>
-    </div>
+    <ButtonMore type="button" onClick={moreImages}>
+      Load more
+    </ButtonMore>
   );
 };
 

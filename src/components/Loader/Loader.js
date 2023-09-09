@@ -1,20 +1,22 @@
 import React from 'react';
-import { MagnifyingGlass } from 'react-loader-spinner';
+import { Oval } from 'react-loader-spinner';
 import { Wrap } from './Loader.styled';
 
-export const Loader = () => {
+export const Loader = () => (
   <Wrap>
-    <MagnifyingGlass
-      visible={true}
-      height="80"
-      width="80"
-      ariaLabel="MagnifyingGlass-loading"
+    <Oval
+      height={100}
+      width={100}
+      color="#3f51b5"
       wrapperStyle={{}}
-      wrapperClass="MagnifyingGlass-wrapper"
-      glassColor="#c0efff"
-      color="#e15b64"
+      wrapperClass=""
+      visible={true}
+      ariaLabel="oval-loading"
+      secondaryColor="#3f51b5"
+      strokeWidth={2}
+      strokeWidthSecondary={2}
     />
-  </Wrap>;
-};
+  </Wrap>
+);
 
 // export default Loader;

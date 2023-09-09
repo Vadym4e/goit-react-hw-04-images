@@ -1,14 +1,19 @@
 import React from 'react';
+import { Image, Item, List } from './Gallery.styled';
 
-const Gallery = ({ images }) => {
+const Gallery = ({ images, onImagesClick }) => {
   return (
-    <ul>
-      {images.map(({ id, webformatURL }) => (
-        <li key={id}>
-          <img src={webformatURL} alt="img" />
-        </li>
+    <List>
+      {images.map(image => (
+        <Item key={image.id}>
+          <Image
+            src={image.webformatURL}
+            alt=""
+            onClick={() => onImagesClick(image)}
+          />
+        </Item>
       ))}
-    </ul>
+    </List>
   );
 };
 

@@ -4,6 +4,8 @@ import Gallery from './Gallery/Gallery';
 import LoadMore from './LoadMore/LoadMore';
 import { fetchStartImages, fetchRequestImages } from 'api';
 import { Loader } from './Loader/Loader';
+import Modal from './Modal/Modal';
+import { GlobalStyle } from './GlobalStyle';
 
 const { Component } = require('react');
 
@@ -14,7 +16,26 @@ export class App extends Component {
     page: 1,
     total: 0,
     isLoading: false,
+    selectedImage: null,
   };
+
+  async componentDidMount() {
+    const imagesList = await fetchStartImages();
+
+    this.setState({
+      images: [...imagesList.hits],
+      total: imagesList.total,
+    });
+  }
+
+  async componentDidUpdate(prevProps, prevState) {
+    if (
+      prevState.query !== this.state.query ||
+      prevState.page !== this.state.page
+    ) {
+      this.LoadImages();
+    }
+  }
 
   changeQuery = newQuery => {
     if (newQuery === '') {
@@ -43,39 +64,36 @@ export class App extends Component {
       });
   };
 
-  async componentDidMount() {
-    const imagesList = await fetchStartImages();
-
-    this.setState({
-      images: [...imagesList.hits],
-      total: imagesList.total,
-    });
-  }
-
-  async componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.query !== this.state.query ||
-      prevState.page !== this.state.page
-    ) {
-      this.LoadImages();
-    }
-  }
-
   loadMoreImages = () => {
     this.setState(prevState => ({ page: prevState.page + 1 }));
   };
 
+  handleImageClick = selectedImage => {
+    this.setState({ selectedImage });
+  };
+
+  handleModalClose = () => {
+    this.setState({ selectedImage: null });
+  };
+
   render() {
-    const { images, isLoading, total } = this.state;
+    const { images, isLoading, total, selectedImage } = this.state;
     return (
-      <div>
+      <>
+        <GlobalStyle />
         <SearchBar search={this.changeQuery} />
-        <Loader />
-        <Gallery images={images} />
+        {isLoading && <Loader />}
+        <Gallery images={images} onImagesClick={this.handleImageClick} />
         {images.length < total && !isLoading && (
           <LoadMore moreImages={this.loadMoreImages} />
         )}
-      </div>
+        {selectedImage && (
+          <Modal
+            selectedImage={selectedImage}
+            onClose={this.handleModalClose}
+          />
+        )}
+      </>
     );
   }
 }
