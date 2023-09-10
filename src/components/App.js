@@ -57,6 +57,11 @@ export class App extends Component {
           total: images.total,
           isLoading: false,
         }));
+        if (images.total === 0) {
+          Notiflix.Notify.failure(
+            "We didn't find anything for this search :(  Try another option"
+          );
+        }
       })
       .catch(error => {
         console.error('Error fetching images:', error);
