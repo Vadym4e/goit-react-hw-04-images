@@ -6,57 +6,49 @@ import { fetchStartImages, fetchRequestImages } from 'api';
 import { Loader } from './Loader/Loader';
 import Modal from './Modal/Modal';
 import { GlobalStyle } from './GlobalStyle';
+import { useEffect, useState } from 'react';
 
-const { Component } = require('react');
+export const App = () => {
+  const [query, setQuery] = useState('');
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
-export class App extends Component {
-  state = {
-    query: '',
-    images: [],
-    page: 1,
-    total: 0,
-    isLoading: false,
-    selectedImage: null,
-  };
+  useEffect(() => {
+    async function fetchData() {
+      const imagesList = await fetchStartImages();
 
-  async componentDidMount() {
-    const imagesList = await fetchStartImages();
-
-    this.setState({
-      images: [...imagesList.hits],
-      total: imagesList.total,
-    });
-  }
-
-  async componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.query !== this.state.query ||
-      prevState.page !== this.state.page
-    ) {
-      this.LoadImages();
+      setImages(imagesList.hits);
+      setTotal(imagesList.total);
     }
-  }
+    fetchData();
+  }, []);
+  useEffect(() => {
+    LoadImages();
+  }, [query, page]);
 
-  changeQuery = newQuery => {
+  const changeQuery = newQuery => {
     if (newQuery === '') {
       Notiflix.Notify.failure('Please specify your search query.');
     }
 
-    this.setState({ query: `${Date.now()}/${newQuery}`, images: [], page: 1 });
+    setQuery(`${Date.now()}/${newQuery}`);
+    setImages([]);
+    setPage(1);
   };
 
-  LoadImages = async () => {
-    this.setState({ isLoading: true });
+  const LoadImages = async () => {
+    setIsLoading(true);
 
-    const normalQuery = this.state.query.slice(14, this.state.query.length);
+    const normalQuery = query.slice(14, query.length);
 
-    await fetchRequestImages(normalQuery, this.state.page)
-      .then(images => {
-        this.setState(prevState => ({
-          images: [...prevState.images, ...images.hits],
-          total: images.total,
-          isLoading: false,
-        }));
+    await fetchRequestImages(normalQuery, page)
+      .then(result => {
+        setImages([...images, ...result.hits]);
+        setTotal(result.total);
+        setIsLoading(false);
         if (images.total === 0) {
           Notiflix.Notify.failure(
             "We didn't find anything for this search :(  Try another option"
@@ -65,40 +57,34 @@ export class App extends Component {
       })
       .catch(error => {
         console.error('Error fetching images:', error);
-        this.setState({ isLoading: false });
+        setIsLoading(false);
       });
   };
 
-  loadMoreImages = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const loadMoreImages = () => {
+    setPage(page + 1);
   };
 
-  handleImageClick = selectedImage => {
-    this.setState({ selectedImage });
+  const handleImageClick = selectImage => {
+    setSelectedImage(selectImage);
   };
 
-  handleModalClose = () => {
-    this.setState({ selectedImage: null });
+  const handleModalClose = () => {
+    setSelectedImage(null);
   };
 
-  render() {
-    const { images, isLoading, total, selectedImage } = this.state;
-    return (
-      <>
-        <GlobalStyle />
-        <SearchBar search={this.changeQuery} />
-        {isLoading && <Loader />}
-        <Gallery images={images} onImagesClick={this.handleImageClick} />
-        {images.length < total && !isLoading && (
-          <LoadMore moreImages={this.loadMoreImages} />
-        )}
-        {selectedImage && (
-          <Modal
-            selectedImage={selectedImage}
-            onClose={this.handleModalClose}
-          />
-        )}
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <GlobalStyle />
+      <SearchBar search={changeQuery} />
+      {isLoading && <Loader />}
+      <Gallery images={images} onImagesClick={handleImageClick} />
+      {images.length < total && !isLoading && (
+        <LoadMore moreImages={loadMoreImages} />
+      )}
+      {selectedImage && (
+        <Modal selectedImage={selectedImage} onClose={handleModalClose} />
+      )}
+    </>
+  );
+};
